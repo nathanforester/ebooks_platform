@@ -30,4 +30,8 @@ CRU(D) for:
   individual user stories, which are available via:
   https://trello.com/b/Yh5YFeDN/ebooks-project
   
- 
+- Runfile now needs to be created to test basic functionality
+
+- Function for users to write their own books needs to be abstracted into a function
+
+- Error handling needs to be included 
