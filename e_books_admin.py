@@ -1,32 +1,33 @@
+import hashlib
+import uuid
+import bcrypt
 from e_books_connect import MSDBConnection
 
 
 class DBCAdminTable(MSDBConnection):
 
     def _create_admin(self, admin_id, department, email, admin_f_name, admin_l_name, address, city, region, postal_code,
-                      country, phone):
+                      country, phone, _password_hash):
+        salt = uuid.uuid4().hex
+        hashing_password = hashlib.sha512(_password_hash + salt).hexdigest()
         self.new_add = self.sql_query(f"""INSERT INTO Administrators (AdminID, Department, AdminFName, Admin_l_name, 
-                                      ContactTitle, Address, City, Region, PostalCode, Country, Phone, Fax) 
+                                      ContactTitle, Address, City, Region, PostalCode, Country, Phone) 
                                       VALUES ({admin_id},'{department}', '{email}', '{admin_f_name}', '{admin_l_name}', 
                                       '{address}', '{city}', '{region}', '{postal_code}', '{country}', 
-                                      '{phone}')""").commit
+                                      '{phone}', {_password_hash})""").commit
         return self.new_add
 
     def get_create_admin(self):
         return self.new_add
 
     def _create_password(self, new_password):
-        self._password = new_password
-        return new_password
+        self._password_hash = new_password
+        return bcrypt.hashpw(new_password, bcrypt.gensalt())
 
-    def get_password(self):
-        return self._password
-
-    def check_password(self, enter_password):
+    @staticmethod
+    def check_password(new_password, hashed_password):
         count = 3
-        query_1 = self.sql_query(enter_password)
-        query_2 = self.sql_query() # check password against existing record)
-        while query_1 != query_2:
+        while new_password != hashed_password:
             count -= 1
             if count == 2:
                 return 'you have two more attempts remaining'
@@ -34,7 +35,8 @@ class DBCAdminTable(MSDBConnection):
                 return 'you have one more attempt remaining'
             while count <= 0:
                 return """too many attempts. Closing program. Please contact another administrator. As an administrator 
-                       with responsibility over passwords it does not look good that you forgot your password"""
+                               with responsibility over passwords it does not look good that you forgot your password"""
+        return bcrypt.checkpw(new_password, hashed_password)
 
     def get_by_id(self, table, col, val):
         return self.sql_query(str(f"SELECT * FROM {table} WHERE {col} = '{val}'")).fetchall()
@@ -52,11 +54,14 @@ class DBCAdminTable(MSDBConnection):
             result_list.append(row)
         return result_list
 
-    def _create_table(self, col, data_type):
-        self.new_table = self.sql_query(f"""CREATE TABLE table_name (
+    def _create_table(self, table, col, data_type):
+        while True:
+            if table is not None:
+                if col is not None:
+                    self.new_table = self.sql_query(f"""CREATE TABLE {table} (
                                         {col} {data_type},
                                         {col} {data_type})""").commit
-        return self.new_table
+                    return self.new_table
 
     def get_create_table(self):
         return self.new_table

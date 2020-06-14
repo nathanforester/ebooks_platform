@@ -10,14 +10,14 @@ class DbBookTable(MSDBConnection):
                                VALUES ('{book_name}', {author}, {genre}, '{isbn}')""").commit
 
     def get_by_id(self, ids):
-        return self.sql_query(f"SELECT * FROM Products WHERE ProductID = " + str(ids)).fetchone()
+        return self.sql_query(f"SELECT * FROM Books WHERE BookID = " + str(ids)).fetchone()
 
     def get_all(self, product_name=None):
         result_list = []
         if product_name is None:
-            query_result = self.sql_query('SELECT * FROM Products')
+            query_result = self.sql_query('SELECT * FROM Books')
         else:
-            query_result = self.sql_query(f"SELECT * FROM Products WHERE ProductName LIKE '%{product_name}%'")
+            query_result = self.sql_query(f"SELECT * FROM Books WHERE Book LIKE '%{product_name}%'")
         while True:
             row = query_result.fetchone()
             if row is None:
@@ -33,9 +33,21 @@ class DbBookTable(MSDBConnection):
     def get_insert(self):
         return self.new_insert
 
+    def _create_book(self, val_1, val_2):
+        self.create_new = self.sql_query(f"""INSERT INTO BookContents (BookName, Text) VALUES ('{val_1}', 
+                                         '{val_2};""").commit
+        return self.create_new
 
-class CRUDRecord(DbBookTable):
+    def get_create_book(self):
+        return self.create_new
 
-    new_record = DbBookTable().get_by_id(id)
+    def _update_book(self, new_book_name):
+        self.book_name = new_book_name
+        new_book_name = open(f"{new_book_name}", "a")
+        return new_book_name.write('')
+
+
+
+
 
 
